@@ -1,0 +1,41 @@
+﻿@page "/complexrequestpage"
+@using BlazorHosted.Shared
+@using System.Security.Cryptography
+@using System.Text.Json
+@using JsonSerializer = Newtonsoft.Json.JsonSerializer
+@inject HttpClient http
+
+<p><button @onclick="@(async()=>GetTest1())">get test with object</button></p>
+<p><button @onclick="@(async()=>GetTest2())">post test</button></p>
+<p>@tobj.a</p>
+<p>@tobj.b</p>
+<p>@tobj.c</p>
+@code
+{
+    TestObject tobj=new TestObject();
+
+    async Task GetTest1()
+    {
+        tobj = await http.GetFromJsonAsync<TestObject>("api/test2");
+
+    }
+
+    async Task GetTest2()
+    {
+        var msg = new HttpRequestMessage(HttpMethod.Post, "api/test4");
+        msg.Headers.Add("headervalue","tst");
+        msg.Content = new MultipartFormDataContent
+        {
+            {new StringContent(tobj.a.ToString()), "a"},
+            {new StringContent(tobj.b), "b"},
+            {new StringContent(tobj.c.ToString()), "c"}
+        };
+        
+
+        var resp = await http.SendAsync(msg);
+        if (resp.IsSuccessStatusCode)
+        {
+            tobj = await resp.Content.ReadFromJsonAsync<TestObject>();
+        }
+    }
+}

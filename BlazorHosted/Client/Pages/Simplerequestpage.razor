@@ -1,0 +1,54 @@
+﻿@page "/simplerequestpage"
+@using BlazorHosted.Shared
+@using System.Net
+@inject HttpClient http
+
+<p>
+    <button @onclick="@(async () => await GetTest())">get test</button>
+</p>
+<p>
+    <button @onclick="@(async () => await GetTest1())">get test with object</button>
+</p>
+<p>
+    <button @onclick="@(async () => await GetTest2())">post test</button>
+</p>
+<p>@testouput</p>
+<p>@tobj.a</p>
+<p>@tobj.b</p>
+<p>@tobj.c</p>
+
+@code
+{
+    string testouput;
+    TestObject tobj = new TestObject();
+
+    protected override Task OnInitializedAsync()
+    {
+        http.DefaultRequestHeaders.Add("headervalue", "tst");
+        return base.OnInitializedAsync();
+    }
+
+    async Task GetTest()
+    {
+        try
+        {
+            testouput = await http.GetStringAsync("api/test1");
+        }
+        catch (Exception e)
+        {
+            testouput = e.Message;
+        }
+    }
+
+    async Task GetTest1()
+    {
+        tobj = await http.GetFromJsonAsync<TestObject>("api/test2");
+    }
+
+    async Task GetTest2()
+    {
+        var message = await http.PostAsJsonAsync<TestObject>("api/test3", tobj);
+        tobj = await message.Content.ReadFromJsonAsync<TestObject>();
+    }
+
+}
