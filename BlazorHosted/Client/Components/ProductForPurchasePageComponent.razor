@@ -1,0 +1,38 @@
+﻿@if (product != null)
+{
+    <div style="float: left; width: 100%; background-color: @selectioncolor">
+        <div style="float: left;width: 20%">@product.id</div>
+        <div style="float: left;width: 20%">@product.name</div>
+        <div style="float: left;width: 20%">@product.description</div>
+        <div style="float: left;width: 20%">@product.value</div>
+        <div style="float: left; width: 20%">
+            <button @onclick="@(async ()=>await ToggleSelection())"></button>
+        </div>
+    </div>
+}
+
+@code
+{
+    [Parameter]
+    public string id { get; set; }
+    [Parameter]
+    public EventCallback<KeyValuePair<string,bool>> OnSelected { get; set; }
+
+    string selectioncolor = "#ffd800";
+    public bool is_selected { get; set; }
+    ProductModel product;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        product = await http.GetFromJsonAsync<ProductModel>("/api/getproductdetails?id=" + id);
+
+    }
+
+    async Task ToggleSelection()
+    {
+        is_selected = !is_selected;
+        selectioncolor = is_selected ? "#4cff00" : "#ffd800";
+        await OnSelected.InvokeAsync(new KeyValuePair<string, bool>(id, is_selected));
+
+    }
+}
