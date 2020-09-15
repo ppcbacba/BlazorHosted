@@ -1,0 +1,94 @@
+﻿@page "/createpurchasepage"
+
+<div style="float: left; width: 33%;">
+    @if (buyers.Count != 0)
+    {
+        @foreach (var item in buyers)
+        {
+            <BuyerForPurchasePageComponent id="@item" OnSelected="BuyerCheckSelected"></BuyerForPurchasePageComponent>
+        }
+    }
+    else
+    {
+        <p>No buyers found</p>
+    }
+    <p><button @onclick="@(async()=>await  RefreshBuyers())">Refresh buyers</button></p>
+</div>
+<div style="float: left; width: 33%">
+    @if (products.Count != 0)
+    {
+        @foreach (var item in products)
+        {
+            <ProductForPurchasePageComponet id="@item" OnSelected="ProductCheckSelected"></ProductForPurchasePageComponet>
+        }
+    }
+    else
+    {
+        <p>No product found</p>
+    }
+    <p><button @onclick="@(async()=>await  RefreshProducts())">Refresh Products</button></p>
+</div>
+<div style="float: left; width: 33%">
+    <button @onclick="SubmitPruchase">Create purchase</button>
+</div>
+
+@code
+{
+    List<string> buyers = new List<string>();
+    List<string> products = new List<string>();
+
+    string buyer_selected;
+    List<string> products_selected = new List<string>();
+
+    void BuyerCheckSelected(KeyValuePair<string, bool> arg)
+    {
+        buyer_selected = arg.Key;
+    }
+
+    void ProductCheckSelected(KeyValuePair<string, bool> arg)
+    {
+        if (arg.Value)
+        {
+            products_selected.Add(arg.Key);
+        }
+        else
+        {
+            products_selected.Remove(arg.Key);
+
+        }
+    }
+
+    async Task RefreshBuyers()
+    {
+        buyers = await http.GetFromJsonAsync<List<string>>("api/getbuyerlist");
+
+    }
+
+    async Task RefreshProducts()
+    {
+        products = await http.GetFromJsonAsync<List<string>>("api/getproductlist");
+
+    }
+
+    async Task SubmitPurchase()
+    {
+        var tempobj=new PurchaseModel()
+        {
+            id=Guid.NewGuid().ToString(),
+            datecreated = DateTime.UtcNow,
+            buyer=buyer_selected,
+            products = products_selected
+        };
+
+        try
+        {
+            var result = await http.PostAsJsonAsync("/api/createpurchase", tempobj);
+
+        }
+        catch
+        {
+           await js.InvokeAsync<object>("alert", "something is wrong when sumbit purchase");
+
+        }
+    }
+}

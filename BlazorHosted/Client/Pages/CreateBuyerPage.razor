@@ -1,0 +1,31 @@
+﻿@page "/createbuyerpage"
+
+
+<p>name</p>
+<p>
+    <input @bind="@currentbuyer.name"/>
+</p>
+<p>
+    <button @onclick="@(async () => await Create())">Create</button>
+</p>
+
+@code
+{
+    BuyerModel currentbuyer = new BuyerModel()
+    {
+        id = Guid.NewGuid().ToString()
+    };
+
+    async Task Create()
+    {
+        var result = await http.PostAsJsonAsync("/api/createbuyer", currentbuyer);
+        if (result.IsSuccessStatusCode)
+        {
+            currentbuyer=new BuyerModel(){id=Guid.NewGuid().ToString()};
+        } else
+        {
+            await js.InvokeAsync<object>("alert", "Something went wrong");
+
+        }
+    }
+}

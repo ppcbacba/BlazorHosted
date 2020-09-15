@@ -1,0 +1,68 @@
+﻿@page "/createproductpage"
+
+<p>name</p>
+<p><input @bind="@currentproduct.name"/></p>
+<p>description</p>
+<p><input @bind="@currentproduct.description"/></p>
+<p>value</p>
+<p><input @bind="@currentproduct.value"/></p>
+<p><button @onclick="@(async()=>await  SubmitProduct())">Submit</button></p>
+<hr/>
+<p>Products</p>
+@if (products != null)
+{
+    @foreach (var item in products)
+    {
+        <ProductComponet @key="@item" id="@item" OnDelete="Remove"></ProductComponet>
+    }
+}
+
+@code
+{
+    ProductModel currentproduct = new ProductModel()
+    {
+        id = Guid.NewGuid().ToString(), available = true
+    };
+
+    List<string> products;
+
+    protected override async Task OnInitializedAsync()
+    {
+        products = await http.GetFromJsonAsync<List<string>>("/api/getproductlist");
+    }
+
+    async Task SubmitProduct()
+    {
+        try
+        {
+            var result = await http.PostAsJsonAsync("/api/createproduct", currentproduct);
+            if (result.IsSuccessStatusCode )
+            {
+                currentproduct=new ProductModel()
+                {
+                    id=Guid.NewGuid().ToString(),
+                    available = true,
+                };
+            }
+            else
+            {
+                await js.InvokeAsync<object>("alert", "Something went wrong");
+
+            }
+        }
+        catch (Exception e)
+        {
+            await js.InvokeAsync<object>("alert",e.Message);
+
+        }
+    }
+
+    async void Remove(string id)
+    {
+        var result =await http.DeleteAsync("/api/removeproduct?id=" + id);
+        if (result.IsSuccessStatusCode)
+        {
+            products.Remove(id);
+        }
+    }
+}

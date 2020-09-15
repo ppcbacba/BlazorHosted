@@ -1,0 +1,29 @@
+﻿@if (@product != null)
+{
+    <p>id:@product.id</p>
+    <p>id:@product.name</p>
+    <p>id:@product.description</p>
+    <p>id:@product.value</p>
+    <p><button @onclick="@delete">Delete</button></p>
+}
+
+@code
+{
+    [Parameter]
+    public string id { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnDelete { get; set; }
+
+    ProductModel product;
+
+    protected override async Task OnInitializedAsync()
+    {
+        product = await http.GetFromJsonAsync<ProductModel>("/api/getproductdetails?id=" + id);
+    }
+
+    async void delete()
+    {
+        await OnDelete.InvokeAsync(id);
+    }
+}
